@@ -48,7 +48,7 @@ export function loadSavedSettings(): SavedSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (!raw) {
-      return { startingRound: 1, keepDifficulty: false, soundEnabled: true, volume: 0.6, bgMusicEnabled: true };
+      return { startingRound: 1, keepDifficulty: false, soundEnabled: true, volume: 0.6, bgMusicEnabled: false };
     }
     const parsed = JSON.parse(raw);
     const volume = typeof parsed.volume === 'number' ? Math.max(0, Math.min(1, parsed.volume)) : 0.6;
@@ -57,10 +57,10 @@ export function loadSavedSettings(): SavedSettings {
       keepDifficulty: Boolean(parsed.keepDifficulty),
       soundEnabled: parsed.soundEnabled !== undefined ? Boolean(parsed.soundEnabled) : true,
       volume,
-      bgMusicEnabled: parsed.bgMusicEnabled !== undefined ? Boolean(parsed.bgMusicEnabled) : true,
+      bgMusicEnabled: parsed.bgMusicEnabled !== undefined ? Boolean(parsed.bgMusicEnabled) : false,
     };
   } catch {
-    return { startingRound: 1, keepDifficulty: false, soundEnabled: true, volume: 0.6, bgMusicEnabled: true };
+    return { startingRound: 1, keepDifficulty: false, soundEnabled: true, volume: 0.6, bgMusicEnabled: false };
   }
 }
 

@@ -463,11 +463,12 @@ export const playErrorSound = playWrongIconSound;
 export const playFanfareSound = playGrandVictoryFanfare;
 
 // ============================================================
-// Soft looping background music (gentle kid-friendly ambient)
+// Soft background music (very light, no continuous drone)
+// Default OFF – only short gentle notes, spaced far apart
 // ============================================================
 
-let bgMusicNodes: { oscillators: OscillatorNode[]; gains: GainNode[]; intervalId: number | null } | null = null;
-let bgMusicEnabled = true; // separate from SFX, but respects master soundEnabled
+let bgMusicNodes: { intervalId: number | null } | null = null;
+let bgMusicEnabled = false; // default OFF – tránh ù ù khó chịu
 
 export function getBgMusicEnabled(): boolean {
   return bgMusicEnabled;
@@ -483,87 +484,54 @@ export function setBgMusicEnabled(enabled: boolean): void {
 }
 
 /**
- * Soft ambient pad + gentle arpeggio loop.
- * Very low volume, non-intrusive, suitable for children.
+ * Chỉ phát vài nốt ngắn, thưa thớt, không có pad ù ù.
+ * Âm lượng cực thấp, không gây mỏi tai.
  */
 export function startBackgroundMusic(): void {
   if (!bgMusicEnabled || !soundEnabled || soundVolume <= 0) return;
-  if (bgMusicNodes) return; // already playing
+  if (bgMusicNodes) return;
 
-  const audio = getAudioContext();
-  if (!audio) return;
-  const { ctx, destination } = audio;
+  // Chỉ dùng arpeggio thưa, không sustained pad
+  const softNotes = [523.25, 587.33, 659.25, 698.46]; // C5 D5 E5 F5 – pentatonic nhẹ
+  let noteIndex = 0;
 
-  const oscillators: OscillatorNode[] = [];
-  const gains: GainNode[] = [];
-
-  // Soft sustained pad (two close notes for warmth)
-  const padNotes = [261.63, 329.63]; // C4 + E4
-  padNotes.forEach((freq, i) => {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(freq, ctx.currentTime);
-    gain.gain.setValueAtTime(0, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(0.035, ctx.currentTime + 1.5); // very soft
-    osc.connect(gain);
-    gain.connect(destination);
-    osc.start();
-    oscillators.push(osc);
-    gains.push(gain);
-  });
-
-  // Gentle slow arpeggio every ~2.8s
-  const arpNotes = [523.25, 659.25, 783.99, 659.25]; // C5 E5 G5 E5
-  let arpIndex = 0;
-
-  const playArpNote = () => {
+  const playSoftNote = () => {
     if (!bgMusicNodes || !soundEnabled || !bgMusicEnabled) return;
     const a = getAudioContext();
     if (!a) return;
-    const { ctx: c, destination: d } = a;
-    const now = c.currentTime;
-    const freq = arpNotes[arpIndex % arpNotes.length];
-    arpIndex++;
+    const { ctx, destination } = a;
+    const now = ctx.currentTime;
+    const freq = softNotes[noteIndex % softNotes.length];
+    noteIndex++;
 
-    const osc = c.createOscillator();
-    const gain = c.createGain();
-    osc.type = 'triangle';
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
     osc.frequency.setValueAtTime(freq, now);
+
+    // Rất nhẹ, fade in/out nhanh
     gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(0.04, now + 0.05);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+    gain.gain.linearRampToValueAtTime(0.018, now + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
     osc.connect(gain);
-    gain.connect(d);
+    gain.connect(destination);
     osc.start(now);
-    osc.stop(now + 0.75);
+    osc.stop(now + 1.0);
   };
 
-  // Start first arpeggio after a short delay
-  const intervalId = window.setInterval(playArpNote, 2800);
-  // Play one immediately
-  setTimeout(playArpNote, 400);
+  // Mỗi 5–6 giây mới một nốt, rất thưa
+  const intervalId = window.setInterval(playSoftNote, 5500);
+  // Không phát ngay lập tức
 
-  bgMusicNodes = { oscillators, gains, intervalId };
+  bgMusicNodes = { intervalId };
 }
 
 export function stopBackgroundMusic(): void {
   if (!bgMusicNodes) return;
-  const { oscillators, gains, intervalId } = bgMusicNodes;
-  if (intervalId) clearInterval(intervalId);
-
-  const now = audioCtx?.currentTime ?? 0;
-  gains.forEach((g) => {
-    try {
-      g.gain.cancelScheduledValues(now);
-      g.gain.linearRampToValueAtTime(0.001, now + 0.8);
-    } catch {}
-  });
-  oscillators.forEach((o) => {
-    try {
-      o.stop(now + 1);
-    } catch {}
-  });
+  if (bgMusicNodes.intervalId) {
+    clearInterval(bgMusicNodes.intervalId);
+  }
   bgMusicNodes = null;
 }
 
