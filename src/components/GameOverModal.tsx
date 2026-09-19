@@ -1,5 +1,6 @@
 import confetti from 'canvas-confetti';
 import { useEffect } from 'react';
+import { motion } from 'motion/react';
 import { Animal, GameMode } from '../types';
 import { playGrandVictoryFanfare } from '../utils/audio';
 
@@ -69,7 +70,12 @@ export default function GameOverModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-md animate-fadeIn">
-      <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border-4 border-amber-300 text-center relative overflow-hidden">
+      <motion.div
+        initial={{ scale: 0.85, opacity: 0, y: 30 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        transition={{ type: 'spring', damping: 22, stiffness: 260 }}
+        className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border-4 border-amber-300 text-center relative overflow-hidden"
+      >
         {/* Crown & celebration banner */}
         <div className="mb-2">
           {winner !== 'draw' && winningAnimal ? (
@@ -143,7 +149,7 @@ export default function GameOverModal({
             Về Màn Hình Chính
           </button>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }

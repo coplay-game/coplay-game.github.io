@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { GameHistoryItem, GameMode } from '../types';
+import { motion } from 'motion/react';
+import { GameHistoryItem } from '../types';
 import {
   getSoundEnabled,
   getSoundVolume,
@@ -9,6 +10,7 @@ import {
   unlockAudioOnUserGesture,
 } from '../utils/audio';
 import { loadSavedSettings, saveSettings } from '../utils/storage';
+import HowToPlayModal from './HowToPlayModal';
 
 interface HomeScreenProps {
   startingRound: number;
@@ -32,6 +34,7 @@ export default function HomeScreen({
   const [soundOn, setSoundOn] = useState<boolean>(getSoundEnabled());
   const [volume, setVolume] = useState<number>(getSoundVolume());
   const [confirmClear, setConfirmClear] = useState<boolean>(false);
+  const [showHowToPlay, setShowHowToPlay] = useState<boolean>(false);
 
   const toggleSound = () => {
     const next = !soundOn;
@@ -86,38 +89,57 @@ export default function HomeScreen({
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-amber-50 via-orange-50/60 to-pink-50/50 flex flex-col items-center justify-between p-4 sm:p-6 text-slate-800 overflow-y-auto">
-      {/* Top Header bar with sound toggle */}
+      {/* Top Header bar with sound toggle + How to Play */}
       <header className="w-full max-w-lg flex items-center justify-between pt-2 pb-4">
         <div className="flex items-center gap-2">
           <span className="text-3xl animate-bounce">🎈</span>
           <span className="font-extrabold text-lg text-amber-700 tracking-tight">Co-play 2 Bé</span>
         </div>
 
-        <button
-          type="button"
-          onClick={toggleSound}
-          className="p-2 sm:px-3 sm:py-2 rounded-full bg-white/95 shadow-md border border-amber-200 text-amber-700 hover:bg-amber-100/70 active:scale-95 transition cursor-pointer flex items-center gap-1.5 text-xs sm:text-sm font-bold"
-          title={soundOn ? `Đang bật âm thanh (${Math.round(volume * 100)}%)` : 'Đang tắt âm thanh'}
-        >
-          <i
-            className={`fa-solid ${
-              !soundOn || volume === 0
-                ? 'fa-volume-xmark text-rose-500'
-                : volume < 0.5
-                ? 'fa-volume-low text-amber-600'
-                : 'fa-volume-high text-amber-600'
-            }`}
-          ></i>
-          <span className="hidden sm:inline">
-            {soundOn && volume > 0 ? `${Math.round(volume * 100)}%` : 'Tắt tiếng'}
-          </span>
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowHowToPlay(true)}
+            className="p-2 sm:px-3 sm:py-2 rounded-full bg-white/95 shadow-md border border-amber-200 text-amber-700 hover:bg-amber-100/70 active:scale-95 transition cursor-pointer flex items-center gap-1.5 text-xs sm:text-sm font-bold"
+            title="Xem hướng dẫn chơi"
+            aria-label="Hướng dẫn chơi"
+          >
+            <i className="fa-solid fa-circle-question text-amber-600"></i>
+            <span className="hidden sm:inline">Hướng dẫn</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={toggleSound}
+            className="p-2 sm:px-3 sm:py-2 rounded-full bg-white/95 shadow-md border border-amber-200 text-amber-700 hover:bg-amber-100/70 active:scale-95 transition cursor-pointer flex items-center gap-1.5 text-xs sm:text-sm font-bold"
+            title={soundOn ? `Đang bật âm thanh (${Math.round(volume * 100)}%)` : 'Đang tắt âm thanh'}
+            aria-label={soundOn ? 'Tắt âm thanh' : 'Bật âm thanh'}
+          >
+            <i
+              className={`fa-solid ${
+                !soundOn || volume === 0
+                  ? 'fa-volume-xmark text-rose-500'
+                  : volume < 0.5
+                  ? 'fa-volume-low text-amber-600'
+                  : 'fa-volume-high text-amber-600'
+              }`}
+            ></i>
+            <span className="hidden sm:inline">
+              {soundOn && volume > 0 ? `${Math.round(volume * 100)}%` : 'Tắt tiếng'}
+            </span>
+          </button>
+        </div>
       </header>
 
       {/* Main card */}
       <main className="w-full max-w-lg flex flex-col items-center my-auto">
         {/* Title */}
-        <div className="text-center mb-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="text-center mb-6"
+        >
           <div className="inline-flex items-center justify-center gap-2 bg-amber-200/70 border border-amber-300 text-amber-900 font-bold px-4 py-1 rounded-full text-xs sm:text-sm shadow-sm mb-3">
             <span>✨ 1 Màn Hình — 2 Người Chơi Đối Diện ✨</span>
           </div>
@@ -127,22 +149,24 @@ export default function HomeScreen({
           <p className="text-slate-600 text-sm sm:text-base font-semibold mt-2 max-w-sm mx-auto">
             Mỗi bên có nhiều icon dễ thương, nhưng <span className="text-pink-600 font-extrabold">chỉ có 1 icon giống nhau</span>. Ai bấm nhanh hơn sẽ thắng!
           </p>
-        </div>
+        </motion.div>
 
         {/* Big Glossy "Chơi Ngay" Button */}
-        <button
+        <motion.button
           type="button"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
           onClick={() => {
             unlockAudioOnUserGesture();
             onStartGame();
           }}
           id="btn-play-now"
-          className="w-full py-5 px-8 rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-500 text-white font-black text-2xl sm:text-3xl shadow-2xl hover:brightness-105 active:scale-98 transition flex items-center justify-center gap-3 cursor-pointer btn-glossy border-4 border-white/60 mb-6 group"
+          className="w-full py-5 px-8 rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-500 text-white font-black text-2xl sm:text-3xl shadow-2xl hover:brightness-105 transition flex items-center justify-center gap-3 cursor-pointer btn-glossy border-4 border-white/60 mb-6 group"
         >
           <i className="fa-solid fa-play text-amber-200 group-hover:scale-125 transition-transform duration-200"></i>
           <span>CHƠI NGAY</span>
           <span className="text-xl">🚀</span>
-        </button>
+        </motion.button>
 
         {/* Options Card: Force level and Keep difficulty */}
         <div className="w-full bg-white/95 rounded-3xl p-5 shadow-xl border-2 border-amber-200/80 mb-6 space-y-4">
@@ -294,12 +318,20 @@ export default function HomeScreen({
           </div>
         </div>
 
-        {/* Cute gameplay instructions recap */}
+        {/* Cute gameplay instructions recap + How to Play CTA */}
         <div className="w-full bg-amber-100/50 rounded-2xl p-3 border border-amber-200/60 text-xs font-semibold text-slate-600 flex items-start gap-2.5">
           <span className="text-xl">💡</span>
-          <div>
+          <div className="flex-1">
             <span className="font-bold text-amber-900">Mẹo nhỏ: </span>
             Bé nào bấm nhầm sẽ bị khóa nửa màn hình (đếm ngược 2s, 3s, 4s...). Hãy quan sát thật kỹ trước khi chạm nhé!
+            <button
+              type="button"
+              onClick={() => setShowHowToPlay(true)}
+              className="mt-1.5 inline-flex items-center gap-1 text-amber-700 font-extrabold underline underline-offset-2 hover:text-amber-900 transition"
+            >
+              <i className="fa-solid fa-book-open text-[10px]"></i>
+              Xem hướng dẫn đầy đủ
+            </button>
           </div>
         </div>
       </main>
@@ -416,6 +448,9 @@ export default function HomeScreen({
           </div>
         )}
       </section>
+
+      {/* How to Play Modal */}
+      <HowToPlayModal isOpen={showHowToPlay} onClose={() => setShowHowToPlay(false)} />
     </div>
   );
 }
