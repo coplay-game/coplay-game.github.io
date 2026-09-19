@@ -267,41 +267,6 @@ export default function GameScreen({
           </div>
         </div>
 
-        {/* Penalty Overlay for Player 1 */}
-        <AnimatePresence>
-          {p1Penalty > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/65 backdrop-blur-[2px] flex flex-col items-center justify-center z-30"
-            >
-              <motion.div
-                initial={{ scale: 0.7, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                className="bg-white rounded-3xl p-5 sm:p-6 text-center shadow-2xl border-4 border-rose-400 max-w-xs"
-              >
-                <motion.span
-                  animate={{ rotate: [0, -8, 8, -8, 0] }}
-                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 0.8 }}
-                  className="text-5xl block mb-1"
-                >
-                  ⏳
-                </motion.span>
-                <p className="text-rose-600 font-black text-lg">Bấm Nhầm Rồi!</p>
-                <div className="text-5xl font-black text-slate-800 my-1 tabular-nums">
-                  {p1Penalty}
-                  <span className="text-2xl">s</span>
-                </div>
-                <p className="text-xs font-bold text-slate-500">
-                  Hãy chờ để bấm tiếp nhé!
-                </p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Winner celebration banner for Player 1 */}
         <AnimatePresence>
           {roundWinner === 1 && (
@@ -309,7 +274,7 @@ export default function GameScreen({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-emerald-400/35 backdrop-blur-[1px] flex items-center justify-center z-25 pointer-events-none"
+              className="absolute inset-0 bg-emerald-400/25 flex items-center justify-center z-25 pointer-events-none"
             >
               <motion.div
                 initial={{ scale: 0.5, y: 30 }}
@@ -325,7 +290,11 @@ export default function GameScreen({
 
         {/* Player 1 Icon Circle Container */}
         <div
-          className="relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-2xl border-[6px] sm:border-8 border-pink-300/90 flex items-center justify-center overflow-hidden @container ring-4 ring-pink-100/50"
+          className={`relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-2xl border-[6px] sm:border-8 flex items-center justify-center overflow-hidden @container ring-4 transition-all duration-300 ${
+            p1Penalty > 0
+              ? 'border-rose-400 ring-rose-200/60 opacity-75'
+              : 'border-pink-300/90 ring-pink-100/50'
+          }`}
           style={{ containerType: 'inline-size' }}
         >
           {/* Soft inner glow */}
@@ -335,11 +304,13 @@ export default function GameScreen({
           {/* Render Player 1's icons */}
           {p1Icons.map((icon) => {
             const isMatch = icon.id === highlightIconId;
+            const locked = p1Penalty > 0;
             return (
               <button
                 key={`p1-${icon.id}`}
                 type="button"
                 onClick={() => handleIconClick(1, icon.id)}
+                disabled={locked}
                 style={{
                   position: 'absolute',
                   left: `${icon.x}%`,
@@ -348,7 +319,11 @@ export default function GameScreen({
                   height: `${icon.size}%`,
                   transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.25)' : ''}`,
                 }}
-                className={`flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer active:scale-90 ${
+                className={`flex items-center justify-center rounded-full transition-all duration-200 ${
+                  locked
+                    ? 'cursor-not-allowed opacity-60'
+                    : 'cursor-pointer active:scale-90'
+                } ${
                   isMatch
                     ? 'bg-amber-300 text-amber-950 ring-4 ring-amber-400 z-20 animate-sparkle shadow-xl'
                     : 'bg-white/95 hover:bg-white shadow-md border border-pink-100/80 hover:shadow-lg'
@@ -365,6 +340,26 @@ export default function GameScreen({
               </button>
             );
           })}
+
+          {/* Penalty badge — nhỏ, không che kín màn hình */}
+          <AnimatePresence>
+            {p1Penalty > 0 && (
+              <motion.div
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.6, opacity: 0 }}
+                className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
+              >
+                <div className="bg-rose-500/90 text-white rounded-2xl px-4 py-2.5 shadow-xl border-2 border-white/80 flex items-center gap-2">
+                  <span className="text-xl">🔒</span>
+                  <div className="text-center leading-none">
+                    <div className="text-2xl font-black tabular-nums">{p1Penalty}s</div>
+                    <div className="text-[10px] font-bold opacity-90">Chờ tí!</div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
@@ -459,41 +454,6 @@ export default function GameScreen({
           <span className="text-2xl drop-shadow-sm">{player2Animal.emoji}</span>
         </div>
 
-        {/* Penalty Overlay for Player 2 */}
-        <AnimatePresence>
-          {p2Penalty > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-900/65 backdrop-blur-[2px] flex flex-col items-center justify-center z-30"
-            >
-              <motion.div
-                initial={{ scale: 0.7, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                className="bg-white rounded-3xl p-5 sm:p-6 text-center shadow-2xl border-4 border-blue-400 max-w-xs"
-              >
-                <motion.span
-                  animate={{ rotate: [0, -8, 8, -8, 0] }}
-                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 0.8 }}
-                  className="text-5xl block mb-1"
-                >
-                  ⏳
-                </motion.span>
-                <p className="text-blue-600 font-black text-lg">Bấm Nhầm Rồi!</p>
-                <div className="text-5xl font-black text-slate-800 my-1 tabular-nums">
-                  {p2Penalty}
-                  <span className="text-2xl">s</span>
-                </div>
-                <p className="text-xs font-bold text-slate-500">
-                  Hãy chờ để bấm tiếp nhé!
-                </p>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Winner celebration banner for Player 2 */}
         <AnimatePresence>
           {roundWinner === 2 && (
@@ -501,7 +461,7 @@ export default function GameScreen({
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-emerald-400/35 backdrop-blur-[1px] flex items-center justify-center z-25 pointer-events-none"
+              className="absolute inset-0 bg-emerald-400/25 flex items-center justify-center z-25 pointer-events-none"
             >
               <motion.div
                 initial={{ scale: 0.5, y: 30 }}
@@ -517,7 +477,11 @@ export default function GameScreen({
 
         {/* Player 2 Icon Circle Container */}
         <div
-          className="relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-2xl border-[6px] sm:border-8 border-blue-300/90 flex items-center justify-center overflow-hidden @container ring-4 ring-sky-100/50"
+          className={`relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-2xl border-[6px] sm:border-8 flex items-center justify-center overflow-hidden @container ring-4 transition-all duration-300 ${
+            p2Penalty > 0
+              ? 'border-blue-400 ring-blue-200/60 opacity-75'
+              : 'border-blue-300/90 ring-sky-100/50'
+          }`}
           style={{ containerType: 'inline-size' }}
         >
           {/* Soft inner glow */}
@@ -527,11 +491,13 @@ export default function GameScreen({
           {/* Render Player 2's icons */}
           {p2Icons.map((icon) => {
             const isMatch = icon.id === highlightIconId;
+            const locked = p2Penalty > 0;
             return (
               <button
                 key={`p2-${icon.id}`}
                 type="button"
                 onClick={() => handleIconClick(2, icon.id)}
+                disabled={locked}
                 style={{
                   position: 'absolute',
                   left: `${icon.x}%`,
@@ -540,7 +506,11 @@ export default function GameScreen({
                   height: `${icon.size}%`,
                   transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.25)' : ''}`,
                 }}
-                className={`flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer active:scale-90 ${
+                className={`flex items-center justify-center rounded-full transition-all duration-200 ${
+                  locked
+                    ? 'cursor-not-allowed opacity-60'
+                    : 'cursor-pointer active:scale-90'
+                } ${
                   isMatch
                     ? 'bg-amber-300 text-amber-950 ring-4 ring-amber-400 z-20 animate-sparkle shadow-xl'
                     : 'bg-white/95 hover:bg-white shadow-md border border-sky-100/80 hover:shadow-lg'
@@ -557,6 +527,26 @@ export default function GameScreen({
               </button>
             );
           })}
+
+          {/* Penalty badge — nhỏ, không che kín màn hình */}
+          <AnimatePresence>
+            {p2Penalty > 0 && (
+              <motion.div
+                initial={{ scale: 0.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.6, opacity: 0 }}
+                className="absolute inset-0 z-30 flex items-center justify-center pointer-events-none"
+              >
+                <div className="bg-blue-500/90 text-white rounded-2xl px-4 py-2.5 shadow-xl border-2 border-white/80 flex items-center gap-2">
+                  <span className="text-xl">🔒</span>
+                  <div className="text-center leading-none">
+                    <div className="text-2xl font-black tabular-nums">{p2Penalty}s</div>
+                    <div className="text-[10px] font-bold opacity-90">Chờ tí!</div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
