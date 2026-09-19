@@ -2,9 +2,17 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Tìm Hình Giống Nhau</title>
     <meta name="description" content="Game tìm hình giống nhau co-play cho 2 người trên một màn hình với giao diện pastel dễ thương, chia đôi xoay 180° đối diện." />
+    <meta name="theme-color" content="#f59e0b" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Tìm Hình" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon.svg" />
     <meta property="og:title" content="Tìm Hình Giống Nhau" />
     <meta property="og:description" content="Game tìm hình giống nhau co-play cho 2 người trên một màn hình với giao diện pastel dễ thương, chia đôi xoay 180° đối diện." />
     <meta property="og:type" content="website" />
@@ -19,6 +27,13 @@
   <body class="font-sans antialiased overflow-hidden select-none bg-amber-50/40 touch-manipulation">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Register Service Worker for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').catch(() => {});
+        });
+      }
+    </script>
   </body>
 </html>
-

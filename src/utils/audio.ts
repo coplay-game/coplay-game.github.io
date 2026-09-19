@@ -461,3 +461,117 @@ export function playVolumePreviewSound(): void {
 export const playSuccessSound = playRoundWonSound;
 export const playErrorSound = playWrongIconSound;
 export const playFanfareSound = playGrandVictoryFanfare;
+
+// ============================================================
+// Soft looping background music (gentle kid-friendly ambient)
+// ============================================================
+
+let bgMusicNodes: { oscillators: OscillatorNode[]; gains: GainNode[]; intervalId: number | null } | null = null;
+let bgMusicEnabled = true; // separate from SFX, but respects master soundEnabled
+
+export function getBgMusicEnabled(): boolean {
+  return bgMusicEnabled;
+}
+
+export function setBgMusicEnabled(enabled: boolean): void {
+  bgMusicEnabled = enabled;
+  if (enabled && soundEnabled) {
+    startBackgroundMusic();
+  } else {
+    stopBackgroundMusic();
+  }
+}
+
+/**
+ * Soft ambient pad + gentle arpeggio loop.
+ * Very low volume, non-intrusive, suitable for children.
+ */
+export function startBackgroundMusic(): void {
+  if (!bgMusicEnabled || !soundEnabled || soundVolume <= 0) return;
+  if (bgMusicNodes) return; // already playing
+
+  const audio = getAudioContext();
+  if (!audio) return;
+  const { ctx, destination } = audio;
+
+  const oscillators: OscillatorNode[] = [];
+  const gains: GainNode[] = [];
+
+  // Soft sustained pad (two close notes for warmth)
+  const padNotes = [261.63, 329.63]; // C4 + E4
+  padNotes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    gain.gain.setValueAtTime(0, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.035, ctx.currentTime + 1.5); // very soft
+    osc.connect(gain);
+    gain.connect(destination);
+    osc.start();
+    oscillators.push(osc);
+    gains.push(gain);
+  });
+
+  // Gentle slow arpeggio every ~2.8s
+  const arpNotes = [523.25, 659.25, 783.99, 659.25]; // C5 E5 G5 E5
+  let arpIndex = 0;
+
+  const playArpNote = () => {
+    if (!bgMusicNodes || !soundEnabled || !bgMusicEnabled) return;
+    const a = getAudioContext();
+    if (!a) return;
+    const { ctx: c, destination: d } = a;
+    const now = c.currentTime;
+    const freq = arpNotes[arpIndex % arpNotes.length];
+    arpIndex++;
+
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now);
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(0.04, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+    osc.connect(gain);
+    gain.connect(d);
+    osc.start(now);
+    osc.stop(now + 0.75);
+  };
+
+  // Start first arpeggio after a short delay
+  const intervalId = window.setInterval(playArpNote, 2800);
+  // Play one immediately
+  setTimeout(playArpNote, 400);
+
+  bgMusicNodes = { oscillators, gains, intervalId };
+}
+
+export function stopBackgroundMusic(): void {
+  if (!bgMusicNodes) return;
+  const { oscillators, gains, intervalId } = bgMusicNodes;
+  if (intervalId) clearInterval(intervalId);
+
+  const now = audioCtx?.currentTime ?? 0;
+  gains.forEach((g) => {
+    try {
+      g.gain.cancelScheduledValues(now);
+      g.gain.linearRampToValueAtTime(0.001, now + 0.8);
+    } catch {}
+  });
+  oscillators.forEach((o) => {
+    try {
+      o.stop(now + 1);
+    } catch {}
+  });
+  bgMusicNodes = null;
+}
+
+/** Call when sound settings change */
+export function syncBackgroundMusic(): void {
+  if (soundEnabled && bgMusicEnabled && soundVolume > 0) {
+    startBackgroundMusic();
+  } else {
+    stopBackgroundMusic();
+  }
+}

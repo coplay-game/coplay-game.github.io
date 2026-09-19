@@ -10,7 +10,7 @@ import GameScreen from './components/GameScreen';
 import HomeScreen from './components/HomeScreen';
 import { CUTE_ANIMALS, getRandomAnimals } from './data/animals';
 import { Animal, GameHistoryItem, GameMode } from './types';
-import { setSoundEnabled, setSoundVolume } from './utils/audio';
+import { setSoundEnabled, setSoundVolume, syncBackgroundMusic } from './utils/audio';
 import {
   clearGameHistory,
   loadGameHistory,
@@ -51,6 +51,7 @@ export default function App() {
     setKeepDifficulty(loadedSettings.keepDifficulty);
     setSoundEnabled(loadedSettings.soundEnabled);
     setSoundVolume(loadedSettings.volume);
+    syncBackgroundMusic();
     setHistory(loadGameHistory());
   }, []);
 

@@ -8,6 +8,7 @@ export interface SavedSettings {
   keepDifficulty: boolean;
   soundEnabled: boolean;
   volume: number; // 0.0 to 1.0
+  bgMusicEnabled?: boolean;
 }
 
 export function loadGameHistory(): GameHistoryItem[] {
@@ -47,7 +48,7 @@ export function loadSavedSettings(): SavedSettings {
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (!raw) {
-      return { startingRound: 1, keepDifficulty: false, soundEnabled: true, volume: 0.6 };
+      return { startingRound: 1, keepDifficulty: false, soundEnabled: true, volume: 0.6, bgMusicEnabled: true };
     }
     const parsed = JSON.parse(raw);
     const volume = typeof parsed.volume === 'number' ? Math.max(0, Math.min(1, parsed.volume)) : 0.6;
@@ -56,9 +57,10 @@ export function loadSavedSettings(): SavedSettings {
       keepDifficulty: Boolean(parsed.keepDifficulty),
       soundEnabled: parsed.soundEnabled !== undefined ? Boolean(parsed.soundEnabled) : true,
       volume,
+      bgMusicEnabled: parsed.bgMusicEnabled !== undefined ? Boolean(parsed.bgMusicEnabled) : true,
     };
   } catch {
-    return { startingRound: 1, keepDifficulty: false, soundEnabled: true, volume: 0.6 };
+    return { startingRound: 1, keepDifficulty: false, soundEnabled: true, volume: 0.6, bgMusicEnabled: true };
   }
 }
 

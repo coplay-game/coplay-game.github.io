@@ -1,4 +1,5 @@
 import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { Animal, PlacedIcon } from '../types';
 import {
@@ -13,6 +14,9 @@ import {
   playVolumePreviewSound,
   playWrongIconSound,
   setSoundEnabled,
+  startBackgroundMusic,
+  stopBackgroundMusic,
+  syncBackgroundMusic,
   unlockAudioOnUserGesture,
 } from '../utils/audio';
 import { generateRoundCards, getIconCountForRound } from '../utils/layout';
@@ -69,12 +73,24 @@ export default function GameScreen({
     setVolume(getSoundVolume());
   }, [isPaused]);
 
+  // Start soft background music when game starts
+  useEffect(() => {
+    unlockAudioOnUserGesture();
+    syncBackgroundMusic();
+    return () => {
+      stopBackgroundMusic();
+    };
+  }, []);
+
   const handleToggleSoundFromBar = () => {
     const next = !soundOn;
     setSoundOn(next);
     setSoundEnabled(next);
     if (next) {
       playVolumePreviewSound();
+      syncBackgroundMusic();
+    } else {
+      stopBackgroundMusic();
     }
     const currentSettings = loadSavedSettings();
     saveSettings({ ...currentSettings, soundEnabled: next });
@@ -142,13 +158,25 @@ export default function GameScreen({
     // Audio: celebratory round win jingle (+1 point celebration)
     playRoundWonSound();
 
-    // Trigger celebratory small confetti burst from winner side
+    // Stronger celebratory confetti from winner side
     try {
+      const originY = winner === 1 ? 0.28 : 0.72;
       confetti({
-        particleCount: 35,
-        spread: 60,
-        origin: { y: winner === 1 ? 0.3 : 0.7, x: 0.5 },
+        particleCount: 55,
+        spread: 70,
+        origin: { y: originY, x: 0.5 },
+        colors: ['#fbbf24', '#f59e0b', '#34d399', '#60a5fa', '#f472b6'],
       });
+      // Second burst a bit later
+      setTimeout(() => {
+        confetti({
+          particleCount: 30,
+          angle: winner === 1 ? 120 : 60,
+          spread: 50,
+          origin: { y: originY, x: winner === 1 ? 0.2 : 0.8 },
+          colors: ['#fbbf24', '#34d399', '#f472b6'],
+        });
+      }, 180);
     } catch {
       // Ignored
     }
@@ -217,14 +245,18 @@ export default function GameScreen({
   };
 
   return (
-    <div className="fixed inset-0 w-full h-full bg-slate-100 flex flex-col select-none overflow-hidden touch-manipulation">
+    <div className="fixed inset-0 w-full h-full bg-gradient-to-b from-slate-100 to-slate-200 flex flex-col select-none overflow-hidden touch-manipulation">
       {/* ========================================================
           TOP HALF: PLAYER 1 (ROTATED 180 DEG FOR OPPOSITE PLAYER)
           ======================================================== */}
-      <div className="relative flex-1 w-full bg-gradient-to-b from-rose-50 to-pink-100/70 rotate-180 flex flex-col items-center justify-center overflow-hidden p-2 sm:p-4">
+      <div className="relative flex-1 w-full bg-gradient-to-b from-rose-100 via-pink-50 to-rose-50/80 rotate-180 flex flex-col items-center justify-center overflow-hidden p-2 sm:p-4">
+        {/* Soft decorative blobs */}
+        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-pink-200/40 blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-rose-200/30 blur-2xl pointer-events-none" />
+
         {/* Corner Avatar & Name for Player 1 */}
-        <div className="absolute top-3 left-3 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-2xl border-2 border-pink-200 shadow-sm z-10">
-          <span className="text-2xl">{player1Animal.emoji}</span>
+        <div className="absolute top-3 left-3 flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border-2 border-pink-200 shadow-md z-10">
+          <span className="text-2xl drop-shadow-sm">{player1Animal.emoji}</span>
           <div>
             <span className="block text-xs font-black text-pink-700 leading-none">
               {player1Animal.name}
@@ -236,37 +268,69 @@ export default function GameScreen({
         </div>
 
         {/* Penalty Overlay for Player 1 */}
-        {p1Penalty > 0 && (
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center z-30 animate-fadeIn">
-            <div className="bg-white/95 rounded-3xl p-4 sm:p-6 text-center shadow-2xl border-4 border-rose-300 max-w-xs animate-bounce">
-              <span className="text-4xl block mb-1">⏳</span>
-              <p className="text-rose-600 font-black text-lg">Bấm Nhầm Rồi!</p>
-              <div className="text-4xl font-black text-slate-800 my-1">
-                {p1Penalty}s
-              </div>
-              <p className="text-xs font-bold text-slate-500">
-                Hãy chờ để bấm tiếp nhé!
-              </p>
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {p1Penalty > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/65 backdrop-blur-[2px] flex flex-col items-center justify-center z-30"
+            >
+              <motion.div
+                initial={{ scale: 0.7, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                className="bg-white rounded-3xl p-5 sm:p-6 text-center shadow-2xl border-4 border-rose-400 max-w-xs"
+              >
+                <motion.span
+                  animate={{ rotate: [0, -8, 8, -8, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 0.8 }}
+                  className="text-5xl block mb-1"
+                >
+                  ⏳
+                </motion.span>
+                <p className="text-rose-600 font-black text-lg">Bấm Nhầm Rồi!</p>
+                <div className="text-5xl font-black text-slate-800 my-1 tabular-nums">
+                  {p1Penalty}
+                  <span className="text-2xl">s</span>
+                </div>
+                <p className="text-xs font-bold text-slate-500">
+                  Hãy chờ để bấm tiếp nhé!
+                </p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Winner celebration banner for Player 1 */}
-        {roundWinner === 1 && (
-          <div className="absolute inset-0 bg-emerald-500/30 backdrop-blur-xs flex items-center justify-center z-25 pointer-events-none">
-            <div className="bg-emerald-500 text-white font-black text-2xl px-6 py-2 rounded-full shadow-2xl border-4 border-white animate-bounce">
-              ĐÚNG RỒI! +1 ⭐
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {roundWinner === 1 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-emerald-400/35 backdrop-blur-[1px] flex items-center justify-center z-25 pointer-events-none"
+            >
+              <motion.div
+                initial={{ scale: 0.5, y: 30 }}
+                animate={{ scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-2xl sm:text-3xl px-7 py-3 rounded-full shadow-2xl border-4 border-white"
+              >
+                ĐÚNG RỒI! +1 ⭐
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Player 1 Icon Circle Container */}
         <div
-          className="relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-xl border-4 sm:border-8 border-pink-200/90 flex items-center justify-center overflow-hidden @container"
+          className="relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-2xl border-[6px] sm:border-8 border-pink-300/90 flex items-center justify-center overflow-hidden @container ring-4 ring-pink-100/50"
           style={{ containerType: 'inline-size' }}
         >
-          {/* Subtle inner background disc */}
-          <div className="absolute inset-2 rounded-full bg-gradient-to-tr from-pink-50/70 to-rose-50/40 pointer-events-none" />
+          {/* Soft inner glow */}
+          <div className="absolute inset-3 rounded-full bg-gradient-to-br from-pink-50/90 via-white to-rose-50/60 pointer-events-none" />
+          <div className="absolute inset-0 rounded-full shadow-[inset_0_0_30px_rgba(244,114,182,0.12)] pointer-events-none" />
 
           {/* Render Player 1's icons */}
           {p1Icons.map((icon) => {
@@ -282,12 +346,12 @@ export default function GameScreen({
                   top: `${icon.y}%`,
                   width: `${icon.size}%`,
                   height: `${icon.size}%`,
-                  transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.2)' : ''}`,
+                  transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.25)' : ''}`,
                 }}
-                className={`flex items-center justify-center rounded-full transition-all duration-150 cursor-pointer active:scale-90 ${
+                className={`flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer active:scale-90 ${
                   isMatch
-                    ? 'bg-amber-300 text-amber-950 ring-4 ring-amber-400 z-20 animate-sparkle shadow-lg'
-                    : 'bg-white/95 hover:bg-white shadow-sm border border-slate-200/70'
+                    ? 'bg-amber-300 text-amber-950 ring-4 ring-amber-400 z-20 animate-sparkle shadow-xl'
+                    : 'bg-white/95 hover:bg-white shadow-md border border-pink-100/80 hover:shadow-lg'
                 }`}
                 title={icon.name}
               >
@@ -307,12 +371,15 @@ export default function GameScreen({
       {/* ========================================================
           CENTER DIVIDER BAR: SCORES, ROUND INFO, PAUSE BUTTON
           ======================================================== */}
-      <div className="relative z-40 w-full h-14 sm:h-16 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 shadow-md flex items-center justify-between px-3 sm:px-6 border-y-2 border-white/60">
+      <div className="relative z-40 w-full h-14 sm:h-16 bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 shadow-lg flex items-center justify-between px-3 sm:px-6 border-y-[3px] border-white/70">
+        {/* Soft highlight line */}
+        <div className="absolute inset-x-0 top-0 h-px bg-white/50" />
+
         {/* Player 1 summary */}
         <div className="flex items-center gap-2">
-          <span className="text-2xl">{player1Animal.emoji}</span>
-          <div className="bg-white/90 px-3 py-1 rounded-xl shadow-xs border border-amber-200">
-            <span className="font-black text-pink-600 text-base sm:text-lg">
+          <span className="text-2xl drop-shadow-sm">{player1Animal.emoji}</span>
+          <div className="bg-white/95 px-3.5 py-1 rounded-xl shadow-sm border border-amber-200/80 min-w-[2.5rem] text-center">
+            <span className="font-black text-pink-600 text-base sm:text-lg tabular-nums">
               {p1Score}
             </span>
           </div>
@@ -321,10 +388,10 @@ export default function GameScreen({
         {/* Center: Round, Sound & Pause Buttons */}
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="text-center text-white mr-1">
-            <div className="text-xs sm:text-sm font-black tracking-wide drop-shadow-xs">
+            <div className="text-xs sm:text-sm font-black tracking-wide drop-shadow-sm">
               {keepDifficulty ? 'Chế độ cố định' : `Vòng ${currentRound}/18`}
             </div>
-            <div className="text-[10px] font-bold text-amber-100 drop-shadow-xs">
+            <div className="text-[10px] font-bold text-amber-50/95 drop-shadow-sm">
               {currentIconCount} icons
             </div>
           </div>
@@ -335,6 +402,7 @@ export default function GameScreen({
             onClick={handleToggleSoundFromBar}
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/95 text-amber-700 font-extrabold shadow-sm border border-amber-200 flex items-center justify-center active:scale-90 hover:bg-amber-50 transition cursor-pointer"
             title={soundOn && volume > 0 ? `Âm lượng ${Math.round(volume * 100)}% (Bấm để tắt nhanh)` : 'Đang tắt âm thanh (Bấm để bật)'}
+            aria-label={soundOn ? 'Tắt âm thanh' : 'Bật âm thanh'}
           >
             <i
               className={`fa-solid ${
@@ -353,6 +421,7 @@ export default function GameScreen({
             onClick={() => setIsPaused(true)}
             className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white text-amber-600 font-extrabold shadow-md border-2 border-amber-200 flex items-center justify-center active:scale-90 hover:bg-amber-50 transition cursor-pointer"
             title="Tạm dừng game & Chỉnh âm lượng"
+            aria-label="Tạm dừng"
           >
             <i className="fa-solid fa-pause text-xs sm:text-sm"></i>
           </button>
@@ -360,21 +429,25 @@ export default function GameScreen({
 
         {/* Player 2 summary */}
         <div className="flex items-center gap-2">
-          <div className="bg-white/90 px-3 py-1 rounded-xl shadow-xs border border-amber-200">
-            <span className="font-black text-blue-600 text-base sm:text-lg">
+          <div className="bg-white/95 px-3.5 py-1 rounded-xl shadow-sm border border-amber-200/80 min-w-[2.5rem] text-center">
+            <span className="font-black text-blue-600 text-base sm:text-lg tabular-nums">
               {p2Score}
             </span>
           </div>
-          <span className="text-2xl">{player2Animal.emoji}</span>
+          <span className="text-2xl drop-shadow-sm">{player2Animal.emoji}</span>
         </div>
       </div>
 
       {/* ========================================================
           BOTTOM HALF: PLAYER 2 (NORMAL ORIENTATION)
           ======================================================== */}
-      <div className="relative flex-1 w-full bg-gradient-to-b from-sky-50 to-blue-100/70 flex flex-col items-center justify-center overflow-hidden p-2 sm:p-4">
+      <div className="relative flex-1 w-full bg-gradient-to-b from-sky-50 via-blue-50 to-sky-100/80 flex flex-col items-center justify-center overflow-hidden p-2 sm:p-4">
+        {/* Soft decorative blobs */}
+        <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-sky-200/40 blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-8 -left-8 w-32 h-32 rounded-full bg-blue-200/30 blur-2xl pointer-events-none" />
+
         {/* Corner Avatar & Name for Player 2 */}
-        <div className="absolute top-3 right-3 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-1.5 rounded-2xl border-2 border-blue-200 shadow-sm z-10">
+        <div className="absolute top-3 right-3 flex items-center gap-2 bg-white/95 backdrop-blur-md px-3.5 py-2 rounded-2xl border-2 border-blue-200 shadow-md z-10">
           <div>
             <span className="block text-xs font-black text-blue-700 leading-none text-right">
               {player2Animal.name}
@@ -383,41 +456,73 @@ export default function GameScreen({
               {p2Score} điểm
             </span>
           </div>
-          <span className="text-2xl">{player2Animal.emoji}</span>
+          <span className="text-2xl drop-shadow-sm">{player2Animal.emoji}</span>
         </div>
 
         {/* Penalty Overlay for Player 2 */}
-        {p2Penalty > 0 && (
-          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-center z-30 animate-fadeIn">
-            <div className="bg-white/95 rounded-3xl p-4 sm:p-6 text-center shadow-2xl border-4 border-blue-300 max-w-xs animate-bounce">
-              <span className="text-4xl block mb-1">⏳</span>
-              <p className="text-blue-600 font-black text-lg">Bấm Nhầm Rồi!</p>
-              <div className="text-4xl font-black text-slate-800 my-1">
-                {p2Penalty}s
-              </div>
-              <p className="text-xs font-bold text-slate-500">
-                Hãy chờ để bấm tiếp nhé!
-              </p>
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {p2Penalty > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/65 backdrop-blur-[2px] flex flex-col items-center justify-center z-30"
+            >
+              <motion.div
+                initial={{ scale: 0.7, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, opacity: 0 }}
+                className="bg-white rounded-3xl p-5 sm:p-6 text-center shadow-2xl border-4 border-blue-400 max-w-xs"
+              >
+                <motion.span
+                  animate={{ rotate: [0, -8, 8, -8, 0] }}
+                  transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 0.8 }}
+                  className="text-5xl block mb-1"
+                >
+                  ⏳
+                </motion.span>
+                <p className="text-blue-600 font-black text-lg">Bấm Nhầm Rồi!</p>
+                <div className="text-5xl font-black text-slate-800 my-1 tabular-nums">
+                  {p2Penalty}
+                  <span className="text-2xl">s</span>
+                </div>
+                <p className="text-xs font-bold text-slate-500">
+                  Hãy chờ để bấm tiếp nhé!
+                </p>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Winner celebration banner for Player 2 */}
-        {roundWinner === 2 && (
-          <div className="absolute inset-0 bg-emerald-500/30 backdrop-blur-xs flex items-center justify-center z-25 pointer-events-none">
-            <div className="bg-emerald-500 text-white font-black text-2xl px-6 py-2 rounded-full shadow-2xl border-4 border-white animate-bounce">
-              ĐÚNG RỒI! +1 ⭐
-            </div>
-          </div>
-        )}
+        <AnimatePresence>
+          {roundWinner === 2 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-emerald-400/35 backdrop-blur-[1px] flex items-center justify-center z-25 pointer-events-none"
+            >
+              <motion.div
+                initial={{ scale: 0.5, y: 30 }}
+                animate={{ scale: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-black text-2xl sm:text-3xl px-7 py-3 rounded-full shadow-2xl border-4 border-white"
+              >
+                ĐÚNG RỒI! +1 ⭐
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Player 2 Icon Circle Container */}
         <div
-          className="relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-xl border-4 sm:border-8 border-blue-200/90 flex items-center justify-center overflow-hidden @container"
+          className="relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-2xl border-[6px] sm:border-8 border-blue-300/90 flex items-center justify-center overflow-hidden @container ring-4 ring-sky-100/50"
           style={{ containerType: 'inline-size' }}
         >
-          {/* Subtle inner background disc */}
-          <div className="absolute inset-2 rounded-full bg-gradient-to-tr from-sky-50/70 to-blue-50/40 pointer-events-none" />
+          {/* Soft inner glow */}
+          <div className="absolute inset-3 rounded-full bg-gradient-to-br from-sky-50/90 via-white to-blue-50/60 pointer-events-none" />
+          <div className="absolute inset-0 rounded-full shadow-[inset_0_0_30px_rgba(56,189,248,0.12)] pointer-events-none" />
 
           {/* Render Player 2's icons */}
           {p2Icons.map((icon) => {
@@ -433,12 +538,12 @@ export default function GameScreen({
                   top: `${icon.y}%`,
                   width: `${icon.size}%`,
                   height: `${icon.size}%`,
-                  transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.2)' : ''}`,
+                  transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.25)' : ''}`,
                 }}
-                className={`flex items-center justify-center rounded-full transition-all duration-150 cursor-pointer active:scale-90 ${
+                className={`flex items-center justify-center rounded-full transition-all duration-200 cursor-pointer active:scale-90 ${
                   isMatch
-                    ? 'bg-amber-300 text-amber-950 ring-4 ring-amber-400 z-20 animate-sparkle shadow-lg'
-                    : 'bg-white/95 hover:bg-white shadow-sm border border-slate-200/70'
+                    ? 'bg-amber-300 text-amber-950 ring-4 ring-amber-400 z-20 animate-sparkle shadow-xl'
+                    : 'bg-white/95 hover:bg-white shadow-md border border-sky-100/80 hover:shadow-lg'
                 }`}
                 title={icon.name}
               >
