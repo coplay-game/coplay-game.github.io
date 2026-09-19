@@ -1,6 +1,6 @@
 {
-  "name": "Tìm Hình Giống Nhau",
-  "description": "Game tìm hình giống nhau co-play cho 2 người trên một màn hình với giao diện pastel dễ thương, chia đôi xoay 180° đối diện.",
+  "name": "Co-Play 2 Người: Bố Con Cùng Chơi",
+  "description": "Cổng trò chơi 2 người đối diện trên cùng 1 màn hình (180°): Khúc côn cầu bàn thú cưng, Nối ray đoàn tàu Co-op, Đua xe thu hoạch nông trại, Đập quái vật kẹo ngọt và Tìm hình giống nhau.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

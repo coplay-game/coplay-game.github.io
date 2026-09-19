@@ -1,186 +1,96 @@
-import { useState } from 'react';
-import { Animal } from '../types';
-import {
-  getSoundEnabled,
-  getSoundVolume,
-  playVolumePreviewSound,
-  setSoundEnabled,
-  setSoundVolume,
-  unlockAudioOnUserGesture,
-} from '../utils/audio';
-import { loadSavedSettings, saveSettings } from '../utils/storage';
+import React from 'react';
+import { Play, RotateCcw, Home, Flag } from 'lucide-react';
+import { PlayerProfile } from '../types';
 
 interface PauseModalProps {
-  player1: { animal: Animal; score: number };
-  player2: { animal: Animal; score: number };
-  currentRound: number;
-  totalIcons: number;
+  isOpen: boolean;
   onResume: () => void;
+  onRestart: () => void;
   onFinishAndScore: () => void;
+  onGoHome: () => void;
+  scoreP1: number;
+  scoreP2: number;
+  player1: PlayerProfile;
+  player2: PlayerProfile;
+  isCoop?: boolean;
 }
 
-export default function PauseModal({
+export const PauseModal: React.FC<PauseModalProps> = ({
+  isOpen,
+  onResume,
+  onRestart,
+  onFinishAndScore,
+  onGoHome,
+  scoreP1,
+  scoreP2,
   player1,
   player2,
-  currentRound,
-  totalIcons,
-  onResume,
-  onFinishAndScore,
-}: PauseModalProps) {
-  const [soundOn, setSoundOn] = useState<boolean>(getSoundEnabled());
-  const [volume, setVolume] = useState<number>(getSoundVolume());
-
-  const handleToggleSound = () => {
-    unlockAudioOnUserGesture();
-    const next = !soundOn;
-    setSoundOn(next);
-    setSoundEnabled(next);
-    if (next) {
-      playVolumePreviewSound();
-    }
-    const currentSettings = loadSavedSettings();
-    saveSettings({ ...currentSettings, soundEnabled: next });
-  };
-
-  const handleVolumeChange = (newVol: number) => {
-    unlockAudioOnUserGesture();
-    const clamped = Math.max(0, Math.min(1, newVol));
-    setVolume(clamped);
-    setSoundVolume(clamped);
-    if (clamped > 0 && !soundOn) {
-      setSoundOn(true);
-      setSoundEnabled(true);
-    }
-    playVolumePreviewSound();
-    const currentSettings = loadSavedSettings();
-    saveSettings({
-      ...currentSettings,
-      volume: clamped,
-      soundEnabled: clamped > 0,
-    });
-  };
+  isCoop = false,
+}) => {
+  if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white rounded-3xl p-6 sm:p-7 max-w-md w-full shadow-2xl border-4 border-amber-200 text-center">
-        <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-2 text-amber-500 text-2xl shadow-inner">
-          <i className="fa-solid fa-pause"></i>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+      <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border-4 border-amber-200 text-center animate-in fade-in zoom-in-95 duration-200">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-100 text-amber-600 mb-3 text-2xl shadow-inner">
+          ⏸️
         </div>
 
-        <h3 className="text-2xl font-black text-slate-800 tracking-wide mb-0.5">
-          Tạm Dừng Game
-        </h3>
-        <p className="text-slate-500 text-xs sm:text-sm font-medium mb-4">
-          Vòng {currentRound} • {totalIcons} icons trên mỗi vòng tròn
-        </p>
+        <h3 className="text-2xl font-bold text-slate-800 mb-1">Tạm Dừng Trò Chơi</h3>
+        <p className="text-sm text-slate-500 mb-5">Nghỉ tay một chút nhé!</p>
 
-        {/* Current scores */}
-        <div className="grid grid-cols-2 gap-3 mb-4 bg-amber-50/70 p-3.5 rounded-2xl border border-amber-200/70">
+        {/* Current Scores */}
+        <div className="grid grid-cols-2 gap-3 mb-6 bg-slate-50 p-3 rounded-2xl border border-slate-200">
           <div className="flex flex-col items-center">
-            <span className="text-3xl mb-0.5">{player1.animal.emoji}</span>
-            <span className="text-xs sm:text-sm font-bold text-slate-700">{player1.animal.name}</span>
-            <span className="text-xl sm:text-2xl font-black text-pink-600 mt-0.5">{player1.score} điểm</span>
+            <span className="text-2xl">{player1.avatar}</span>
+            <span className="text-xs font-semibold text-slate-600 mt-0.5">{player1.name}</span>
+            <span className="text-2xl font-black text-rose-500">{scoreP1}</span>
           </div>
-          <div className="flex flex-col items-center border-l border-amber-200/80">
-            <span className="text-3xl mb-0.5">{player2.animal.emoji}</span>
-            <span className="text-xs sm:text-sm font-bold text-slate-700">{player2.animal.name}</span>
-            <span className="text-xl sm:text-2xl font-black text-blue-600 mt-0.5">{player2.score} điểm</span>
+
+          <div className="flex flex-col items-center">
+            <span className="text-2xl">{player2.avatar}</span>
+            <span className="text-xs font-semibold text-slate-600 mt-0.5">{player2.name}</span>
+            <span className="text-2xl font-black text-blue-500">{scoreP2}</span>
           </div>
         </div>
 
-        {/* Sound and Volume Slider */}
-        <div className="mb-5 bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 text-left">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <i
-                className={`fa-solid ${
-                  !soundOn || volume === 0
-                    ? 'fa-volume-xmark text-slate-400'
-                    : volume < 0.5
-                    ? 'fa-volume-low text-amber-500'
-                    : 'fa-volume-high text-amber-500'
-                }`}
-              ></i>
-              <span className="text-xs sm:text-sm font-bold text-slate-800">
-                Điều chỉnh âm lượng
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[11px] font-extrabold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
-                {soundOn && volume > 0 ? `${Math.round(volume * 100)}%` : 'Tắt'}
-              </span>
-              <button
-                type="button"
-                onClick={handleToggleSound}
-                className={`px-2.5 py-0.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
-                  soundOn && volume > 0
-                    ? 'bg-amber-500 text-white border-amber-600 shadow-xs'
-                    : 'bg-slate-200 text-slate-600 border-slate-300'
-                }`}
-              >
-                {soundOn && volume > 0 ? 'BẬT' : 'TẮT'}
-              </button>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2.5">
-            <button
-              type="button"
-              onClick={() => handleVolumeChange(0)}
-              className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
-              title="Tắt tiếng"
-            >
-              <i className="fa-solid fa-volume-off text-xs"></i>
-            </button>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.05"
-              value={soundOn ? volume : 0}
-              onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-              className="flex-1 accent-amber-500 h-2 bg-slate-200 rounded-lg cursor-pointer"
-              title="Kéo để chỉnh âm lượng"
-            />
-            <button
-              type="button"
-              onClick={() => handleVolumeChange(1)}
-              className="text-amber-600 hover:text-amber-700 transition cursor-pointer"
-              title="Âm lượng tối đa"
-            >
-              <i className="fa-solid fa-volume-high text-xs"></i>
-            </button>
-          </div>
-
-          <div className="mt-2 text-[10.5px] font-medium text-slate-500 bg-amber-50/80 p-2 rounded-xl border border-amber-200/50 flex items-start gap-1.5">
-            <span className="shrink-0">📱</span>
-            <span>
-              <strong>iPhone:</strong> Nếu không có tiếng, hãy kiểm tra <strong>công tắc gạt im lặng</strong> bên cạnh máy đã bật chuông chưa nhé!
-            </span>
-          </div>
-        </div>
-
-        {/* Action buttons */}
+        {/* Action Buttons */}
         <div className="flex flex-col gap-2.5">
           <button
-            type="button"
             onClick={onResume}
-            className="w-full py-3 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-base sm:text-lg shadow-lg hover:brightness-105 active:scale-98 transition flex items-center justify-center gap-2 cursor-pointer"
+            className="flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-base shadow-md hover:brightness-105 active:scale-98 transition"
           >
-            <i className="fa-solid fa-play"></i>
+            <Play className="w-5 h-5 fill-current" />
             Chơi Tiếp
           </button>
 
           <button
-            type="button"
-            onClick={onFinishAndScore}
-            className="w-full py-2.5 px-6 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm sm:text-base transition flex items-center justify-center gap-2 border border-slate-200 cursor-pointer"
+            onClick={onRestart}
+            className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-800 font-semibold text-sm border border-amber-200 active:scale-98 transition"
           >
-            <i className="fa-solid fa-flag-checkered text-amber-500"></i>
-            Kết Thúc & Tính Điểm
+            <RotateCcw className="w-4 h-4" />
+            Chơi Lại Từ Đầu
+          </button>
+
+          {!isCoop && (
+            <button
+              onClick={onFinishAndScore}
+              className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold text-sm border border-indigo-200 active:scale-98 transition"
+            >
+              <Flag className="w-4 h-4" />
+              Kết Thúc & Tính Điểm Ngay
+            </button>
+          )}
+
+          <button
+            onClick={onGoHome}
+            className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium text-sm active:scale-98 transition"
+          >
+            <Home className="w-4 h-4" />
+            Về Danh Sách Game
           </button>
         </div>
       </div>
     </div>
   );
-}
+};

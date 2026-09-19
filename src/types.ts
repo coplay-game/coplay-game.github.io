@@ -1,46 +1,41 @@
-export type GameMode = 'progressive' | 'fixed';
+export type GameId = 'air-hockey' | 'train-coop' | 'farm-race' | 'candy-monster' | 'spot-match';
 
-export type PlayerId = 1 | 2;
+export type OrientationMode = 'opposite' | 'side-by-side';
 
-export interface Animal {
-  id: string;
+export interface PlayerProfile {
+  id: 'p1' | 'p2';
   name: string;
-  emoji: string;
-  faIcon: string;
+  animal: string;
+  avatar: string;
   color: string;
-  badgeBg: string;
+  bgLight: string;
+  textColor: string;
 }
 
-export interface GameIconItem {
+export interface GameRecord {
   id: string;
-  faClass: string;
-  name: string;
-  color: string;
-}
-
-export interface PlacedIcon extends GameIconItem {
-  x: number; // percentage from center (-50 to 50 or 0 to 100)
-  y: number; // percentage from center
-  size: number; // in percentage of circle diameter
-  rotation: number; // deg
-  glyphSizeCqw?: number; // font size in container query units
-}
-
-export interface GameHistoryItem {
-  id: string;
-  timestamp: number;
-  dateStr: string;
+  gameId: GameId;
+  gameTitle: string;
+  winner: 'p1' | 'p2' | 'coop-win' | 'draw';
+  winnerName: string;
+  winnerAvatar: string;
+  scoreP1: number;
+  scoreP2: number;
   durationSec: number;
-  mode: GameMode;
-  targetIcons: number;
-  player1: {
-    animal: Animal;
-    score: number;
-  };
-  player2: {
-    animal: Animal;
-    score: number;
-  };
-  winner: 1 | 2 | 'draw';
-  roundsPlayed: number;
+  date: string;
+  mode?: string;
+}
+
+export interface GameMeta {
+  id: GameId;
+  title: string;
+  subtitle: string;
+  description: string;
+  tag: string;
+  badgeColor: string;
+  iconName: string;
+  coverEmoji: string;
+  bgColor: string;
+  borderColor: string;
+  isCoop?: boolean;
 }
