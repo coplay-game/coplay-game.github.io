@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { playGoSound, playTickSound } from '../utils/audio';
+import { playGoSound, playTickSound, unlockAudioOnUserGesture } from '../utils/audio';
 
 interface CountdownOverlayProps {
   onComplete: () => void;
@@ -9,6 +9,7 @@ export default function CountdownOverlay({ onComplete }: CountdownOverlayProps) 
   const [count, setCount] = useState<number | string>(3);
 
   useEffect(() => {
+    unlockAudioOnUserGesture();
     playTickSound();
     const t1 = setTimeout(() => {
       setCount(2);
@@ -38,12 +39,29 @@ export default function CountdownOverlay({ onComplete }: CountdownOverlayProps) 
   }, [onComplete]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-amber-950/60 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-amber-950/60 backdrop-blur-md px-4">
       <div className="flex flex-col items-center justify-center animate-bounce">
-        <div className="w-40 h-40 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 border-8 border-white shadow-2xl flex items-center justify-center text-amber-900 font-extrabold text-6xl tracking-wider select-none">
-          {count}
+        <div
+          className={`transition-all duration-300 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 border-6 sm:border-8 border-white shadow-2xl flex items-center justify-center select-none overflow-hidden ${
+            typeof count === 'number'
+              ? 'w-44 h-44 sm:w-52 sm:h-52'
+              : 'w-52 h-52 sm:w-64 sm:h-64'
+          }`}
+        >
+          {typeof count === 'number' ? (
+            <span className="text-7xl sm:text-8xl font-black text-amber-950 drop-shadow-xs">
+              {count}
+            </span>
+          ) : (
+            <div className="flex flex-col items-center justify-center px-3">
+              <span className="text-3xl sm:text-4xl mb-1">🚀</span>
+              <span className="text-xl sm:text-2xl font-black text-amber-950 tracking-wide uppercase text-center leading-tight">
+                SẴN SÀNG!
+              </span>
+            </div>
+          )}
         </div>
-        <p className="mt-6 text-white text-2xl font-bold tracking-wide drop-shadow-md">
+        <p className="mt-6 text-white text-xl sm:text-2xl font-bold tracking-wide drop-shadow-md text-center">
           Hai bé hãy sẵn sàng!
         </p>
       </div>

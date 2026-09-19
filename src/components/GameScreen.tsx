@@ -13,6 +13,7 @@ import {
   playVolumePreviewSound,
   playWrongIconSound,
   setSoundEnabled,
+  unlockAudioOnUserGesture,
 } from '../utils/audio';
 import { generateRoundCards, getIconCountForRound } from '../utils/layout';
 import { loadSavedSettings, saveSettings } from '../utils/storage';
@@ -187,6 +188,7 @@ export default function GameScreen({
 
   // Handle icon tap
   const handleIconClick = (player: 1 | 2, iconId: string) => {
+    unlockAudioOnUserGesture();
     if (roundWinner !== null) return;
 
     // Check penalty lock
@@ -258,8 +260,11 @@ export default function GameScreen({
           </div>
         )}
 
-        {/* Player 1 Icon Circle Container (~2/3 area) */}
-        <div className="relative w-[min(64vh,85vw)] aspect-square rounded-full bg-white shadow-xl border-4 sm:border-8 border-pink-200/90 flex items-center justify-center overflow-hidden">
+        {/* Player 1 Icon Circle Container */}
+        <div
+          className="relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-xl border-4 sm:border-8 border-pink-200/90 flex items-center justify-center overflow-hidden @container"
+          style={{ containerType: 'inline-size' }}
+        >
           {/* Subtle inner background disc */}
           <div className="absolute inset-2 rounded-full bg-gradient-to-tr from-pink-50/70 to-rose-50/40 pointer-events-none" />
 
@@ -277,12 +282,12 @@ export default function GameScreen({
                   top: `${icon.y}%`,
                   width: `${icon.size}%`,
                   height: `${icon.size}%`,
-                  transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.25)' : ''}`,
+                  transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.2)' : ''}`,
                 }}
                 className={`flex items-center justify-center rounded-full transition-all duration-150 cursor-pointer active:scale-90 ${
                   isMatch
                     ? 'bg-amber-300 text-amber-950 ring-4 ring-amber-400 z-20 animate-sparkle shadow-lg'
-                    : 'bg-white/90 hover:bg-white shadow-sm border border-slate-200/60'
+                    : 'bg-white/95 hover:bg-white shadow-sm border border-slate-200/70'
                 }`}
                 title={icon.name}
               >
@@ -290,7 +295,7 @@ export default function GameScreen({
                   className={`${icon.faClass}`}
                   style={{
                     color: isMatch ? '#78350f' : icon.color,
-                    fontSize: 'clamp(1rem, 3.8vw, 2.4rem)',
+                    fontSize: `${icon.glyphSizeCqw || 12}cqw`,
                   }}
                 />
               </button>
@@ -406,8 +411,11 @@ export default function GameScreen({
           </div>
         )}
 
-        {/* Player 2 Icon Circle Container (~2/3 area) */}
-        <div className="relative w-[min(64vh,85vw)] aspect-square rounded-full bg-white shadow-xl border-4 sm:border-8 border-blue-200/90 flex items-center justify-center overflow-hidden">
+        {/* Player 2 Icon Circle Container */}
+        <div
+          className="relative w-[min(41.5vh,86vw)] sm:w-[min(43vh,82vw)] aspect-square rounded-full bg-white shadow-xl border-4 sm:border-8 border-blue-200/90 flex items-center justify-center overflow-hidden @container"
+          style={{ containerType: 'inline-size' }}
+        >
           {/* Subtle inner background disc */}
           <div className="absolute inset-2 rounded-full bg-gradient-to-tr from-sky-50/70 to-blue-50/40 pointer-events-none" />
 
@@ -425,12 +433,12 @@ export default function GameScreen({
                   top: `${icon.y}%`,
                   width: `${icon.size}%`,
                   height: `${icon.size}%`,
-                  transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.25)' : ''}`,
+                  transform: `translate(-50%, -50%) rotate(${icon.rotation}deg) ${isMatch ? 'scale(1.2)' : ''}`,
                 }}
                 className={`flex items-center justify-center rounded-full transition-all duration-150 cursor-pointer active:scale-90 ${
                   isMatch
                     ? 'bg-amber-300 text-amber-950 ring-4 ring-amber-400 z-20 animate-sparkle shadow-lg'
-                    : 'bg-white/90 hover:bg-white shadow-sm border border-slate-200/60'
+                    : 'bg-white/95 hover:bg-white shadow-sm border border-slate-200/70'
                 }`}
                 title={icon.name}
               >
@@ -438,7 +446,7 @@ export default function GameScreen({
                   className={`${icon.faClass}`}
                   style={{
                     color: isMatch ? '#78350f' : icon.color,
-                    fontSize: 'clamp(1rem, 3.8vw, 2.4rem)',
+                    fontSize: `${icon.glyphSizeCqw || 12}cqw`,
                   }}
                 />
               </button>

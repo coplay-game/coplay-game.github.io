@@ -21,8 +21,9 @@ export interface GameIconItem {
 export interface PlacedIcon extends GameIconItem {
   x: number; // percentage from center (-50 to 50 or 0 to 100)
   y: number; // percentage from center
-  size: number; // in pixels or relative scale
+  size: number; // in percentage of circle diameter
   rotation: number; // deg
+  glyphSizeCqw?: number; // font size in container query units
 }
 
 export interface GameHistoryItem {

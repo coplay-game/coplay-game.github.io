@@ -6,6 +6,7 @@ import {
   playVolumePreviewSound,
   setSoundEnabled,
   setSoundVolume,
+  unlockAudioOnUserGesture,
 } from '../utils/audio';
 import { loadSavedSettings, saveSettings } from '../utils/storage';
 
@@ -30,6 +31,7 @@ export default function PauseModal({
   const [volume, setVolume] = useState<number>(getSoundVolume());
 
   const handleToggleSound = () => {
+    unlockAudioOnUserGesture();
     const next = !soundOn;
     setSoundOn(next);
     setSoundEnabled(next);
@@ -41,6 +43,7 @@ export default function PauseModal({
   };
 
   const handleVolumeChange = (newVol: number) => {
+    unlockAudioOnUserGesture();
     const clamped = Math.max(0, Math.min(1, newVol));
     setVolume(clamped);
     setSoundVolume(clamped);
@@ -147,6 +150,13 @@ export default function PauseModal({
             >
               <i className="fa-solid fa-volume-high text-xs"></i>
             </button>
+          </div>
+
+          <div className="mt-2 text-[10.5px] font-medium text-slate-500 bg-amber-50/80 p-2 rounded-xl border border-amber-200/50 flex items-start gap-1.5">
+            <span className="shrink-0">📱</span>
+            <span>
+              <strong>iPhone:</strong> Nếu không có tiếng, hãy kiểm tra <strong>công tắc gạt im lặng</strong> bên cạnh máy đã bật chuông chưa nhé!
+            </span>
           </div>
         </div>
 

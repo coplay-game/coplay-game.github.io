@@ -11,18 +11,33 @@ export function getIconCountForRound(round: number, startingRound: number, keepD
   return Math.min(20, Math.max(3, round + 2));
 }
 
+export function getIconSizePercent(count: number): number {
+  // Easy levels start very large and prominent for young children;
+  // scales down smoothly as icon density increases
+  if (count <= 3) return 36;
+  if (count === 4) return 31;
+  if (count === 5) return 27;
+  if (count === 6) return 24;
+  if (count <= 8) return 21;
+  if (count <= 10) return 18.5;
+  if (count <= 13) return 16;
+  if (count <= 16) return 13.5;
+  if (count <= 18) return 12;
+  return 10.8;
+}
+
 // Generate positions inside a circle (center 50%, 50%, radius <= 40%)
 export function distributeIconsInCircle(icons: GameIconItem[]): PlacedIcon[] {
   const count = icons.length;
-  // Dynamic icon size in % of container circle
-  // 3 icons: ~24%, 20 icons: ~10%
-  const sizePercent = Math.max(9.5, Math.min(24, 38 / Math.sqrt(count * 0.95)));
+  const sizePercent = getIconSizePercent(count);
+  const glyphSizeCqw = Number((sizePercent * 0.58).toFixed(1));
   const maxRadiusPercent = 48 - sizePercent / 1.8; // Keeps icon inside circle boundary
 
   const positions: { x: number; y: number }[] = [];
 
   if (count === 3) {
-    const r = maxRadiusPercent * 0.58;
+    // 3 icons in a large, balanced triangle
+    const r = 24.5;
     for (let i = 0; i < 3; i++) {
       const angle = (i * 2 * Math.PI) / 3 - Math.PI / 2;
       positions.push({
@@ -30,20 +45,31 @@ export function distributeIconsInCircle(icons: GameIconItem[]): PlacedIcon[] {
         y: 50 + r * Math.sin(angle),
       });
     }
+  } else if (count === 4) {
+    // 4 icons in a square layout
+    const r = 25;
+    for (let i = 0; i < 4; i++) {
+      const angle = (i * 2 * Math.PI) / 4 - Math.PI / 4;
+      positions.push({
+        x: 50 + r * Math.cos(angle),
+        y: 50 + r * Math.sin(angle),
+      });
+    }
   } else if (count <= 6) {
-    // 1 in center, rest on a ring
+    // 1 in center, rest on an outer ring
     positions.push({ x: 50, y: 50 });
     const outerCount = count - 1;
-    const r = maxRadiusPercent * 0.65;
+    const r = maxRadiusPercent * 0.82;
+    const randomOffset = Math.random() * 0.4 - 0.2;
     for (let i = 0; i < outerCount; i++) {
-      const angle = (i * 2 * Math.PI) / outerCount - Math.PI / 2 + (Math.random() * 0.3 - 0.15);
+      const angle = (i * 2 * Math.PI) / outerCount - Math.PI / 2 + randomOffset;
       positions.push({
         x: 50 + r * Math.cos(angle),
         y: 50 + r * Math.sin(angle),
       });
     }
   } else {
-    // Golden angle spiral with repulsion relaxation
+    // Golden angle spiral with repulsion relaxation for larger sets
     const goldenAngle = Math.PI * (3 - Math.sqrt(5)); // ~2.39996 rad (~137.5 deg)
     const randomOffsetAngle = Math.random() * Math.PI * 2;
 
@@ -60,8 +86,8 @@ export function distributeIconsInCircle(icons: GameIconItem[]): PlacedIcon[] {
     }
 
     // Relax positions to avoid overlaps
-    const minDistance = sizePercent * 0.98;
-    for (let step = 0; step < 24; step++) {
+    const minDistance = sizePercent * 1.05;
+    for (let step = 0; step < 40; step++) {
       for (let i = 0; i < count; i++) {
         for (let j = i + 1; j < count; j++) {
           const dx = positions[j].x - positions[i].x;
@@ -100,7 +126,8 @@ export function distributeIconsInCircle(icons: GameIconItem[]): PlacedIcon[] {
     x: positions[idx].x,
     y: positions[idx].y,
     size: sizePercent,
-    rotation: Math.round(Math.random() * 40 - 20), // -20 to +20 degrees
+    rotation: Math.round(Math.random() * 30 - 15), // -15 to +15 degrees
+    glyphSizeCqw,
   }));
 }
 

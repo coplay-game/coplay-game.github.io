@@ -6,6 +6,7 @@ import {
   playVolumePreviewSound,
   setSoundEnabled,
   setSoundVolume,
+  unlockAudioOnUserGesture,
 } from '../utils/audio';
 import { loadSavedSettings, saveSettings } from '../utils/storage';
 
@@ -131,7 +132,10 @@ export default function HomeScreen({
         {/* Big Glossy "Chơi Ngay" Button */}
         <button
           type="button"
-          onClick={onStartGame}
+          onClick={() => {
+            unlockAudioOnUserGesture();
+            onStartGame();
+          }}
           id="btn-play-now"
           className="w-full py-5 px-8 rounded-3xl bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-500 text-white font-black text-2xl sm:text-3xl shadow-2xl hover:brightness-105 active:scale-98 transition flex items-center justify-center gap-3 cursor-pointer btn-glossy border-4 border-white/60 mb-6 group"
         >
@@ -278,6 +282,14 @@ export default function HomeScreen({
               >
                 <i className="fa-solid fa-volume-high text-xs"></i>
               </button>
+            </div>
+
+            {/* Helpful tip for iPhone/iPad users regarding hardware silent switch */}
+            <div className="mt-2.5 px-3 py-2 bg-amber-50/90 rounded-xl border border-amber-200/60 text-[11px] font-medium text-slate-600 flex items-start gap-2">
+              <span className="text-sm shrink-0">📱</span>
+              <p className="leading-snug">
+                <strong className="text-amber-900 font-bold">Lưu ý iPhone / iPad:</strong> Nếu máy không phát ra tiếng, vui lòng kiểm tra xem <strong className="text-rose-600 font-bold">công tắc gạt im lặng</strong> (ở cạnh trái máy) có đang gạt sang màu cam không nhé. Hãy gạt sang BẬT chuông để nghe âm thanh!
+              </p>
             </div>
           </div>
         </div>

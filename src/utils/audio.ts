@@ -5,6 +5,68 @@ let audioCtx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
 let soundEnabled = true;
 let soundVolume = 0.6; // Range: 0.0 to 1.0 (default 0.6)
+let isAudioUnlocked = false;
+
+/**
+ * Crucial for iOS / Safari:
+ * iOS disables Web Audio playback until unlocked inside a direct user touch/click gesture.
+ * Playing a 1-sample silent buffer synchronously wakes up the iOS audio engine for the entire session.
+ */
+export function unlockAudioOnUserGesture(): void {
+  if (!audioCtx) {
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    if (AudioContextClass) {
+      try {
+        audioCtx = new AudioContextClass();
+      } catch {
+        return;
+      }
+    }
+  }
+
+  if (audioCtx) {
+    if (!masterGain) {
+      masterGain = audioCtx.createGain();
+      applyMasterGain();
+      masterGain.connect(audioCtx.destination);
+    }
+
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume().catch(() => {});
+    }
+
+    if (!isAudioUnlocked) {
+      try {
+        const buffer = audioCtx.createBuffer(1, 1, 22050);
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(masterGain);
+        source.start(0);
+        isAudioUnlocked = true;
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
+// Automatically register once on initial window load to unlock on the very first touch/click
+if (typeof window !== 'undefined') {
+  const unlockEvents = ['touchstart', 'touchend', 'pointerdown', 'mousedown', 'keydown'];
+  const handleInteraction = () => {
+    unlockAudioOnUserGesture();
+    if (isAudioUnlocked && audioCtx && audioCtx.state === 'running') {
+      unlockEvents.forEach((evt) =>
+        window.removeEventListener(evt, handleInteraction)
+      );
+    }
+  };
+  unlockEvents.forEach((evt) => {
+    window.addEventListener(evt, handleInteraction, { capture: true, passive: true });
+  });
+}
 
 export function getSoundEnabled(): boolean {
   return soundEnabled;
@@ -12,6 +74,9 @@ export function getSoundEnabled(): boolean {
 
 export function setSoundEnabled(enabled: boolean): void {
   soundEnabled = enabled;
+  if (enabled) {
+    unlockAudioOnUserGesture();
+  }
   applyMasterGain();
 }
 
@@ -33,27 +98,14 @@ function applyMasterGain(): void {
 }
 
 function getAudioContext(): { ctx: AudioContext; destination: GainNode } | null {
-  if (!soundEnabled && soundVolume <= 0) return null;
+  if (!soundEnabled || soundVolume <= 0) return null;
 
-  if (!audioCtx) {
-    const AudioContextClass =
-      window.AudioContext ||
-      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    if (AudioContextClass) {
-      audioCtx = new AudioContextClass();
-    }
+  if (!audioCtx || !masterGain) {
+    unlockAudioOnUserGesture();
   }
 
-  if (audioCtx) {
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume().catch(() => {});
-    }
-
-    if (!masterGain) {
-      masterGain = audioCtx.createGain();
-      applyMasterGain();
-      masterGain.connect(audioCtx.destination);
-    }
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
   }
 
   if (!audioCtx || !masterGain || !soundEnabled || soundVolume <= 0) {
