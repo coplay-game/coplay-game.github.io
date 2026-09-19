@@ -3,20 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-    <title>Tìm Hình Giống Nhau</title>
-    <meta name="description" content="Game tìm hình giống nhau co-play cho 2 người trên một màn hình với giao diện pastel dễ thương, chia đôi xoay 180° đối diện." />
+
+    <!-- Primary SEO -->
+    <title>Tìm Hình Giống Nhau — Game Co-play 2 Người Trên 1 Màn Hình</title>
+    <meta name="description" content="Game tìm hình giống nhau vui nhộn cho 2 người chơi trên cùng một màn hình. Hai bé ngồi đối diện, tìm icon giống nhau nhanh nhất. Giao diện pastel dễ thương, phù hợp trẻ em & gia đình." />
+    <meta name="keywords" content="tìm hình giống nhau, game co-play, game 2 người, game trẻ em, memory game, matching game, coplay game, trò chơi đối diện" />
+    <meta name="author" content="Coplay Game" />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://coplay-game.github.io/" />
+
+    <!-- Theme & PWA -->
     <meta name="theme-color" content="#f59e0b" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Tìm Hình" />
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="application-name" content="Tìm Hình Giống Nhau" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
     <link rel="apple-touch-icon" href="/icons/icon.svg" />
-    <meta property="og:title" content="Tìm Hình Giống Nhau" />
-    <meta property="og:description" content="Game tìm hình giống nhau co-play cho 2 người trên một màn hình với giao diện pastel dễ thương, chia đôi xoay 180° đối diện." />
+
+    <!-- Open Graph / Facebook / Zalo / Messenger -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://coplay-game.github.io/" />
+    <meta property="og:site_name" content="Tìm Hình Giống Nhau" />
+    <meta property="og:locale" content="vi_VN" />
+    <meta property="og:title" content="Tìm Hình Giống Nhau — Game Co-play 2 Người" />
+    <meta property="og:description" content="Hai bé ngồi đối diện trên 1 màn hình, tìm icon giống nhau nhanh nhất. Game vui nhộn, pastel dễ thương, phù hợp trẻ em & gia đình." />
+    <meta property="og:image" content="https://coplay-game.github.io/og-image.svg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Tìm Hình Giống Nhau - Game co-play 2 người trên 1 màn hình" />
+
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://coplay-game.github.io/" />
+    <meta name="twitter:title" content="Tìm Hình Giống Nhau — Game Co-play 2 Người" />
+    <meta name="twitter:description" content="Hai bé ngồi đối diện trên 1 màn hình, tìm icon giống nhau nhanh nhất. Game vui nhộn dành cho trẻ em & gia đình." />
+    <meta name="twitter:image" content="https://coplay-game.github.io/og-image.svg" />
+    <meta name="twitter:image:alt" content="Tìm Hình Giống Nhau - Game co-play 2 người" />
+
     <!-- Google Fonts: Fredoka & Nunito -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,7 +54,6 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
-      // Register Service Worker for PWA
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').catch(() => {});

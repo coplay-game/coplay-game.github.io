@@ -1,8 +1,11 @@
-const CACHE_NAME = 'tim-hinh-v1';
+const CACHE_NAME = 'tim-hinh-v2';
 const ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/robots.txt',
+  '/sitemap.xml',
+  '/og-image.svg',
   '/icons/icon.svg'
 ];
 
