@@ -1,0 +1,6 @@
+{
+  "name": "Tìm Hình Giống Nhau",
+  "description": "Game tìm hình giống nhau co-play cho 2 người trên một màn hình với giao diện pastel dễ thương, chia đôi xoay 180° đối diện.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

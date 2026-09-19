@@ -1,146 +1,24 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="vi">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="theme-color" content="#ffd6ec" />
-  <title>Tìm Hình Giống Nhau 🎉</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <link rel="stylesheet" href="styles.css" />
-</head>
-<body>
-  <div id="game" class="game">
-
-    <!-- Player 2 area (top, rotated for face-to-face play) -->
-    <section class="player player--top" data-player="2">
-      <div class="avatar avatar--p2" id="avatar-2">
-        <i class="avatar__icon" id="avatar-icon-2"></i>
-        <span class="avatar__name" id="avatar-name-2"></span>
-      </div>
-      <div class="player__circle" id="circle-2" aria-label="Khu vực người chơi 2"></div>
-      <div class="player__flash" id="flash-2"></div>
-      <div class="penalty" id="penalty-2">
-        <i class="fa-solid fa-hourglass-half"></i>
-        <span class="penalty__num" id="penalty-num-2">2</span>
-      </div>
-    </section>
-
-    <!-- Center divider bar -->
-    <div class="divider">
-      <div class="score score--p2">
-        <i class="fa-solid fa-star"></i>
-        <span id="score-2">0</span>
-      </div>
-
-      <button class="divider__btn" id="stop-btn" aria-label="Dừng / Thoát">
-        <i class="fa-solid fa-power-off"></i>
-      </button>
-
-      <div class="score score--p1">
-        <i class="fa-solid fa-star"></i>
-        <span id="score-1">0</span>
-      </div>
-    </div>
-
-    <!-- Player 1 area (bottom) -->
-    <section class="player player--bottom" data-player="1">
-      <div class="avatar avatar--p1" id="avatar-1">
-        <i class="avatar__icon" id="avatar-icon-1"></i>
-        <span class="avatar__name" id="avatar-name-1"></span>
-      </div>
-      <div class="player__circle" id="circle-1" aria-label="Khu vực người chơi 1"></div>
-      <div class="player__flash" id="flash-1"></div>
-      <div class="penalty" id="penalty-1">
-        <i class="fa-solid fa-hourglass-half"></i>
-        <span class="penalty__num" id="penalty-num-1">2</span>
-      </div>
-    </section>
-
-    <!-- Round badge (center) -->
-    <div class="round-badge" id="round-badge">
-      <i class="fa-solid fa-layer-group"></i>
-      <span id="round-num">1</span>
-    </div>
-
-    <!-- Start / overlay screen -->
-    <div class="overlay" id="overlay">
-      <div class="overlay__card">
-        <h1 class="overlay__title">Tìm Hình<br />Giống Nhau!</h1>
-        <p class="overlay__subtitle" id="overlay-text">Ai tìm ra hình giống nhau trước sẽ thắng nhé! Bấm sai sẽ bị chờ một chút đó 🌈</p>
-
-        <!-- Force level selector -->
-        <div class="level-picker">
-          <span class="level-picker__label">Bắt đầu từ vòng</span>
-          <div class="level-stepper">
-            <button class="level-stepper__btn" id="level-down" aria-label="Giảm vòng">
-              <i class="fa-solid fa-minus"></i>
-            </button>
-            <div class="level-stepper__value">
-              <span id="level-value">1</span>
-              <small id="level-icons">3 hình</small>
-            </div>
-            <button class="level-stepper__btn" id="level-up" aria-label="Tăng vòng">
-              <i class="fa-solid fa-plus"></i>
-            </button>
-          </div>
-
-          <label class="toggle" id="lock-toggle">
-            <input type="checkbox" id="lock-level" />
-            <span class="toggle__track"><span class="toggle__thumb"></span></span>
-            <span class="toggle__text">
-              <i class="fa-solid fa-lock"></i>
-              Giữ nguyên độ khó
-            </span>
-          </label>
-          <p class="level-picker__hint" id="lock-hint"></p>
-        </div>
-
-        <button class="start-btn" id="start-btn">
-          <i class="fa-solid fa-play"></i>
-          <span>Chơi Ngay</span>
-        </button>
-        <button class="reset-btn" id="reset-btn">
-          <i class="fa-solid fa-rotate-left"></i>
-          <span>Xóa Điểm</span>
-        </button>
-
-        <!-- Game history -->
-        <div class="history">
-          <div class="history__head">
-            <span class="history__title"><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử chơi</span>
-            <button class="history__clear" id="history-clear" aria-label="Xóa lịch sử">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
-          <ul class="history__list" id="history-list"></ul>
-          <p class="history__empty" id="history-empty">Chưa có ván nào. Chơi thử nhé! 🎈</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- Countdown -->
-    <div class="countdown" id="countdown"></div>
-
-    <!-- Pause dialog (shown when stop button pressed while playing) -->
-    <div class="pause" id="pause">
-      <div class="pause__card">
-        <h2 class="pause__title"><i class="fa-solid fa-pause"></i> Tạm dừng</h2>
-        <p class="pause__text" id="pause-score">Điểm: 0 - 0</p>
-        <button class="pause__btn pause__btn--resume" id="resume-btn">
-          <i class="fa-solid fa-play"></i>
-          <span>Chơi tiếp</span>
-        </button>
-        <button class="pause__btn pause__btn--finish" id="finish-btn">
-          <i class="fa-solid fa-flag-checkered"></i>
-          <span>Kết thúc & tính điểm</span>
-        </button>
-      </div>
-    </div>
-
-  </div>
-
-  <script src="game.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Tìm Hình Giống Nhau</title>
+    <meta name="description" content="Game tìm hình giống nhau co-play cho 2 người trên một màn hình với giao diện pastel dễ thương, chia đôi xoay 180° đối diện." />
+    <meta property="og:title" content="Tìm Hình Giống Nhau" />
+    <meta property="og:description" content="Game tìm hình giống nhau co-play cho 2 người trên một màn hình với giao diện pastel dễ thương, chia đôi xoay 180° đối diện." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Google Fonts: Fredoka & Nunito -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  </head>
+  <body class="font-sans antialiased overflow-hidden select-none bg-amber-50/40 touch-manipulation">
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
+
