@@ -449,6 +449,20 @@ export default function HomeScreen({
         )}
       </section>
 
+      {/* Ghi nhận bản quyền */}
+      <footer className="w-full max-w-lg text-center text-[11px] font-semibold text-slate-500 pb-2 leading-relaxed">
+        © 2026 · Một sản phẩm của{' '}
+        <a
+          href="https://hotroso.github.io/"
+          target="_blank"
+          rel="noopener"
+          className="text-amber-700 font-bold underline underline-offset-2 hover:text-amber-900"
+        >
+          Hỗ Trợ Giải Pháp Số
+        </a>{' '}
+        (hotroso.github.io). Bảo lưu mọi quyền.
+      </footer>
+
       {/* How to Play Modal */}
       <HowToPlayModal isOpen={showHowToPlay} onClose={() => setShowHowToPlay(false)} />
     </div>

@@ -1,5 +1,5 @@
 // Đổi tên cache mỗi khi index.html thay đổi để người chơi cũ nhận bản mới
-const CACHE_NAME = 'tim-hinh-v3';
+const CACHE_NAME = 'tim-hinh-v4';
 const ASSETS = [
   '/',
   '/index.html',
